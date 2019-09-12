@@ -91,40 +91,40 @@ requests.packages.urllib3.disable_warnings()
 # Login. SSL certificate verification is turned off to allow self-signed
 # certificates.  You should only do this in trusted environments.
 print("Logging in...")
-client = Client(cfg.vcd_host, verify_ssl_certs=False,
+client = Client(os.environ['VCLOUD_HOST'], verify_ssl_certs=False,
                 api_version='27.0',
                 log_file='pyvcloud.log',
                 log_requests=True,
                 log_headers=True,
                 log_bodies=True)
 client.set_credentials(BasicLoginCredentials(os.environ['VCLOUD_USERNAME'],
-                       cfg.org, os.environ['VCLOUD_PASSWORD']))
+                       os.environ['VCLOUD_ORG'], os.environ['VCLOUD_PASSWORD']))
 
 # Ensure the org exists.
 # Ensure the org exists.
 print("Fetching org...")
 try:
     # This call gets a record that we can turn into an Org class.
-    org_record = client.get_org_by_name(cfg.org)
+    org_record = client.get_org_by_name(os.environ['VCLOUD_ORG'])
     org = Org(client, href=org_record.get('href'))
     print("Org already exists: {0}".format(org.get_name()))
 except Exception:
-    print("Org does not exist, creating: {0}".format(cfg.org))
+    print("Org does not exist, creating: {0}".format(os.environ['VCLOUD_ORG']))
     sys_admin_resource = client.get_admin()
     system = System(client, admin_resource=sys_admin_resource)
-    admin_org_resource = system.create_org(cfg.org, "Test Org", True)
-    org_record = client.get_org_by_name(cfg.org)
+    admin_org_resource = system.create_org(os.environ['VCLOUD_ORG'], "Test Org", True)
+    org_record = client.get_org_by_name(os.environ['VCLOUD_ORG'])
     org = Org(client, href=org_record.get('href'))
     print("Org now exists: {0}".format(org.get_name()))
 
 # Ensure VDC exists.
 try:
-    vdc_resource = org.get_vdc(cfg.vdc['vdc_name'])
+    vdc_resource = org.get_vdc(os.environ['VCLOUD_VDC_NAME'])
     vdc = VDC(client, resource=vdc_resource)
-    print("  VDC '{0}' ... OK".format(cfg.vdc['vdc_name']))
+    print("  VDC '{0}' ... OK".format(os.environ['VCLOUD_VDC_NAME']))
 except Exception:
 
-    print("  VDC '{0}' ... KO. Exiting.".format(cfg.vdc['vdc_name']))
+    print("  VDC '{0}' ... KO. Exiting.".format(os.environ['VCLOUD_VDC_NAME']))
     exit(0)
 
 vdc.reload()
