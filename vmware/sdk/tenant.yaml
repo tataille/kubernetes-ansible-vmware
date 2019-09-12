@@ -1,0 +1,45 @@
+#####################
+# TENANT DEFINITION #
+#####################
+
+
+
+
+# A catalog that we will create. 
+catalog: 
+  name: "Linux"
+  description: "A linux catalog"
+
+# One or more items that will be loaded in the catalog. Specify the full
+# path of files. 
+catalog_items: 
+  - item_name: "CentOS7 with GUI"
+    description: "Test vApp"
+    catalog_name: "Linux"
+
+# One or more vApps we would like to create.  The catalog, template, and 
+# network must match names previously defined in this file or that already
+# exist in vCD. 
+# children of VM are masters. Children of master are slaves
+vapp: 
+  name: "bsk8staillant"
+  network: "Public Lab"
+  accept_all_eulas: True
+  description: "tootot"
+  vms:
+  - name: "bstaillantmaster"
+    hostname: "bstaillantmasterhost"
+    catalog: "Linux"
+    catalog_item: "CentOS7 with GUI"
+    source_vm_name: "bsCOS7GUI-tpl"
+    slaves:
+      - name: "bstaillantslave1"
+        hostname: "bstaillantslavehost2"
+        catalog: "Linux"
+        catalog_item: "CentOS7 with GUI"
+        source_vm_name: "bsCOS7GUI-tpl"
+      - name: "bstaillantslave2"
+        hostname: "bstaillantslavehost2"
+        catalog: "Linux"
+        catalog_item: "CentOS7 with GUI"
+        source_vm_name: "bsCOS7GUI-tpl"
