@@ -1,5 +1,13 @@
 # mywork
 
+# Overview
+
+Makefile targets list:
+
+```
+make help
+```
+
 # VM environment setup
 
 ```

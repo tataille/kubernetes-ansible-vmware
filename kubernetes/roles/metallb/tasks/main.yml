@@ -9,16 +9,22 @@
 - name: "Install MetalLB"
   shell: "kubectl apply -f {{ metallb_yaml_url }}"
   tags: metallb
+  become: yes
+  become_user: genesys
 
 - name: "Create configmap file"
   template:
     src: metallb-layer-2-config.yml.j2
     dest: "{{ tmp_dir }}/metallb-layer-2-config.yml"
   tags: metallb
+  become: yes
+  become_user: genesys
 
 - name: "Create MetalLB configmap in kubernetes"
   shell: "kubectl apply -f {{ tmp_dir }}/metallb-layer-2-config.yml"
   tags: metallb
+  become: yes
+  become_user: genesys
 
 - name: "Clean-up"
   file:
@@ -26,3 +32,4 @@
     state: absent
   ignore_errors: yes
   tags: metallb
+  

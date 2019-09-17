@@ -44,6 +44,7 @@ Then start the cookbook
 
 ```
 $ ansible-playbook -i hosts.ini --ask-vault-pass --extra-vars '@passwd.yml' site.yaml 
+ansible-playbook -i ../host_gen.ini --ask-vault-pass --extra-vars '@passwd.yml' site.yaml 
 ```
 
 ### Kubernetes nodes list

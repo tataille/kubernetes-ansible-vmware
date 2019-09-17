@@ -35,7 +35,7 @@ def handle_task(client, obj):
             obj = client.get_resource(obj.get('href'))
             task = client.get_task_monitor().wait_for_status(
                 task=obj,
-                timeout=60,
+                timeout=120,
                 poll_frequency=5,
                 fail_on_statuses=None,
                 expected_target_statuses=[

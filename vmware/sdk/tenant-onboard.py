@@ -61,8 +61,6 @@ def create_vm(vms, source_vapp_resource, vm_cfg, master_name, master=False):
             result = vm_obj.power_on()
             handle_task(client, result)
             print("    VM '{0}' ... UP {1}".format(vm_cfg['name'], "".ljust(20)))
-        #if not master:
-        #    push_key(os.environ['SSH_USERNAME'], os.environ['SSH_PASSWORD'], ip, master_name)
 
     except EntityNotFoundException:
         print("    VM '{0}' ... NONE -> marked for creation ...".format(vm_cfg['name']))               
@@ -96,23 +94,57 @@ def deploy_key(vms, source_vapp_resource, vm_cfg, master_name):
         ip = vm_obj.list_nics()[0]['ip_address'].ljust(20)
         push_key(os.environ['SSH_USERNAME'], os.environ['SSH_PASSWORD'], ip, master_name)
     except EntityNotFoundException:
-        print("    Cannot deploy certificate on VM '{0}'".format(vm_cfg['name']))               
+        print("    Cannot deploy certificate on VM '{0}'".format(vm_cfg['name']))       
+
+def deploy_local_key(vms, source_vapp_resource, vm_cfg, master_name):
+    try:
+        vm = vapp.get_vm(vm_cfg['name'])
+        vm_obj = VM(client, resource=vm)
+        ip = vm_obj.list_nics()[0]['ip_address'].ljust(20)
+        push_local_key(os.environ['SSH_USERNAME'], os.environ['SSH_PASSWORD'], ip, master_name)
+    except EntityNotFoundException:
+        print("    Cannot deploy certificate on VM '{0}'".format(vm_cfg['name']))          
 
 def gen_key(master_name,user,password, host):
-    print("Generate a SSH Key...")
+    print("Generate a remote SSH Key...")
     """Generate a SSH Key."""
-    # Genarate private key on local env
+    # Genarate private key on remote env, for ease of remote hosts use
     command = "sshpass -p {1} ssh -t {1}@{2} \"yes y | ssh-keygen -t rsa -b 4096 -f /home/{1}/.ssh/id_rsa -C {1} -P ''\"".format(master_name,user,host)
     subprocess.call(command, shell=True)
+    # Genarate private key on local env, for ansible
+    print("Generate Ansible SSH Key...")
+    command = "yes y | ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_ansible_rsa -C {1} -P ''".format(master_name,user,host)
+    subprocess.call(command, shell=True)
+
+def open_secure_port( master_name):
+    global lastMasterIp
+    print("Opening secured port 6443... to  host {0} ".format( lastMasterIp))
+    user =os.environ['SSH_USERNAME']
+    password = os.environ['SSH_PASSWORD']
+    # Installing shpass tool to allow to send command with password without prompt
+    command = "sshpass -p {0} ssh -t {1}@{2} ' sudo -S <<< \"{0}\" firewall-cmd --zone=public --add-port=6443/tcp --permanent'".format(password, user,lastMasterIp)
+    subprocess.call(command, shell=True)
+    command = "sshpass -p {0} ssh -t {1}@{2} ' sudo -S <<< \"{0}\" firewall-cmd --reload'".format(password, user,lastMasterIp)
+    subprocess.call(command, shell=True)
+    
 
 def deploy_tool(vms, source_vapp_resource, vm_cfg, master_name):
     try:
         vm = vapp.get_vm(vm_cfg['name'])
         vm_obj = VM(client, resource=vm)
         ip = vm_obj.list_nics()[0]['ip_address'].ljust(20)
+        upgrade_os(os.environ['SSH_USERNAME'], os.environ['SSH_PASSWORD'], ip, master_name)
         install_sshpass(os.environ['SSH_USERNAME'], os.environ['SSH_PASSWORD'], ip, master_name)
+        install_git(os.environ['SSH_USERNAME'], os.environ['SSH_PASSWORD'], ip, master_name)
     except EntityNotFoundException:
         print("    Cannot deploy tool on VM '{0}'".format(vm_cfg['name']))               
+
+def upgrade_os(user, password, host, master_name):
+    global lastMasterIp
+    print("Upgrading OS... to {0} from host {1} ".format(host, lastMasterIp))
+    # Installing shpass tool to allow to send command with password without prompt
+    command = "sshpass -p {0} ssh -t {2}@{4} ' sudo -S <<< \"{0}\" yum -y upgrade'".format(password, master_name, user, host,lastMasterIp)
+    subprocess.call(command, shell=True)
 
 def install_sshpass(user, password, host, master_name):
     global lastMasterIp
@@ -121,9 +153,21 @@ def install_sshpass(user, password, host, master_name):
     command = "sshpass -p {0} ssh -t {2}@{4} ' sudo -S <<< \"{0}\" yum --enablerepo=epel -y install sshpass'".format(password, master_name, user, host,lastMasterIp)
     subprocess.call(command, shell=True)
 
+def install_git(user, password, host, master_name):
+    global lastMasterIp
+    print("Installing git... to {0} from host {1} ".format(host, lastMasterIp))
+    # Installing shpass tool to allow to send command with password without prompt
+    command = "sshpass -p {0} ssh -t {2}@{4} ' sudo -S <<< \"{0}\" yum -y install git'".format(password, master_name, user, host,lastMasterIp)
+    subprocess.call(command, shell=True)
+
 def push_key(user, password, host, master_name):
     global lastMasterIp
     command = "sshpass -p {0} ssh -t {2}@{4} 'yes y | sshpass -p {0}  ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub {2}@{3}'".format(password, master_name, user, host,lastMasterIp)
+    subprocess.call(command, shell=True)
+
+def push_local_key(user, password, host, master_name):
+    global lastMasterIp
+    command = "sshpass -p {0}  ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_ansible_rsa.pub {2}@{3}".format(password, master_name, user, host,lastMasterIp)
     subprocess.call(command, shell=True)
 
 # Helper functions for creating VDCs.
@@ -300,29 +344,25 @@ for vm in vapp.get_all_vms():
         time.sleep(5)
     print("  VM '{0}' ... {1}  -  IP = {2}".format(vm.get('name'), "UP", vm_obj.list_nics()[0]['ip_address'].ljust(20)))
 
-# Deploying tool
+vapp.reload()
+vm_obj.reload()
+
+# Deploying tool & keys
 for vm_cfg in cfg.vapp['vms']:
     print(vm_cfg)
     source_vapp_resource = client.get_resource(catalog_item.Entity.get('href'))
     generate_key(vms, source_vapp_resource, vm_cfg)
+    deploy_local_key(vms, source_vapp_resource, vm_cfg, vm_cfg['name'])
+    # Disabling firewall on port 6443)
+    open_secure_port(vm_cfg['name'])
     for vm_slave_cfg in vm_cfg['slaves']:
         try:
             source_slave_vapp_resource = client.get_resource(catalog_item.Entity.get('href'))
             deploy_tool(vms, source_slave_vapp_resource, vm_slave_cfg, vm_cfg['name'])
-        except Exception:
-            print("error")
-
-# Deploying keys
-for vm_cfg in cfg.vapp['vms']:
-    print(vm_cfg)
-    for vm_slave_cfg in vm_cfg['slaves']:
-        try:
-            time.sleep(5.0)
-            source_slave_vapp_resource = client.get_resource(catalog_item.Entity.get('href'))
             deploy_key(vms, source_slave_vapp_resource, vm_slave_cfg, vm_cfg['name'])
+            deploy_local_key(vms, source_slave_vapp_resource, vm_slave_cfg, vm_cfg['name'])
         except Exception:
             print("error")
-        
 
 # Log out.
 print("All done!")
