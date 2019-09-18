@@ -16,7 +16,7 @@
   template:
     src: metallb-layer-2-config.yml.j2
     dest: "{{ tmp_dir }}/metallb-layer-2-config.yml"
-  tags: metallb
+  tags: metallb 
 
 - name: "Create MetalLB configmap in kubernetes"
   shell: "kubectl apply -f {{ tmp_dir }}/metallb-layer-2-config.yml"
