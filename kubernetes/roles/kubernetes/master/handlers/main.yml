@@ -14,16 +14,16 @@
   shell: "kubectl patch service kubernetes-dashboard --namespace=kube-system  -p '{\"spec\": {\"type\": \"NodePort\"}}'"
 
 - name: create service account for dashboard
-  shell: kubectl create serviceaccount ryan
+  shell: kubectl create serviceaccount genesysadmin
 - 
   name: create cluster-admin role binding for dashboard
-  shell: kubectl create clusterrolebinding ryan-cadmin --clusterrole=cluster-admin --serviceaccount=default:ryan
+  shell: kubectl create clusterrolebinding genesysadmin-cadmin --clusterrole=cluster-admin --serviceaccount=default:genesysadmin
 - 
   name: create admin role binding for dashboard
-  shell: kubectl create clusterrolebinding ryan-admin --clusterrole=admin --serviceaccount=default:ryan
+  shell: kubectl create clusterrolebinding genesysadmin-admin --clusterrole=admin --serviceaccount=default:genesysadmin
 -
   name: get login token for dashboard
-  shell: kubectl -n default describe secret $(kubectl -n default get secret | awk '/^ryan-token-/{print $1}') | awk '$1=="token:"{print $2}' 
+  shell: kubectl -n default describe secret $(kubectl -n default get secret | awk '/^genesysadmin-token-/{print $1}') | awk '$1=="token:"{print $2}' 
   register: dashboard_token
 - 
   name: save token to host

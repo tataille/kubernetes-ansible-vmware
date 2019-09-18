@@ -2,3 +2,4 @@
 vmware/sdk/pyvcloud.log
 vmware/sdk/pyvcloud.log
 *.log
+kubernetes/host_gen.ini
