@@ -1,7 +1,6 @@
-# mywork
-
 # Overview
 
+Allow to deploy Kubernetes in a VM Ware environment.
 Makefile targets list:
 
 ```

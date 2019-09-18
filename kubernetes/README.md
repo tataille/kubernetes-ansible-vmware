@@ -60,7 +60,13 @@ bstaillants2   Ready    <none>   127m   v1.14.0   135.39.46.137   <none>        
 ### Expose a dashboard
 
 maybe disabling firewall
+ sudo systemctl status firewalld
 ```
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+kubectl edit  deployment kubernetes-dashboard --namespace=kube-system
+kubectl get service --all-namespaces -o wide
+
+
 kubectl expose deployment kubernetes-dashboard --namespace=kube-system --type NodePort
 kubectl proxy
 ```

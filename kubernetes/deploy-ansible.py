@@ -168,7 +168,7 @@ for vm_cfg in cfg.vapp['vms']:
     hostconfig.set("kube-cluster:children","node")
     hostconfig.set("all:vars",'ansible_ssh_user',os.environ['SSH_USERNAME'])
 
-with open('host_gen.ini', 'w') as configfile:
+with open('kubernetes/host_gen.ini', 'w') as configfile:
     hostconfig.write(configfile)
 # Log out.
 print("All done!")

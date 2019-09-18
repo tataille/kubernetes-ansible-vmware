@@ -145,6 +145,9 @@ def upgrade_os(user, password, host, master_name):
     # Installing shpass tool to allow to send command with password without prompt
     command = "sshpass -p {0} ssh -t {2}@{4} ' sudo -S <<< \"{0}\" yum -y upgrade'".format(password, master_name, user, host,lastMasterIp)
     subprocess.call(command, shell=True)
+    command = "sshpass -p {0} ssh -t {2}@{4} ' sudo -S <<< \"{0}\" sudo systemctl stop firewalld'".format(password, master_name, user, host,lastMasterIp)
+    subprocess.call(command, shell=True)
+     
 
 def install_sshpass(user, password, host, master_name):
     global lastMasterIp
