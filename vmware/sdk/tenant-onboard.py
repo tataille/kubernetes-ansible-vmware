@@ -318,6 +318,8 @@ for vm_cfg in cfg.vapp['vms']:
     print(vm_cfg)
     source_vapp_resource = client.get_resource(catalog_item.Entity.get('href'))
     create_master_vm(vms, source_vapp_resource, vm_cfg)
+    # wait for the master to start and get the first ip
+    time.sleep(15)
     for vm_slave_cfg in vm_cfg['slaves']:
         source_slave_vapp_resource = client.get_resource(catalog_item.Entity.get('href'))
         create_slave_vm(vms,vm_cfg['name'], source_slave_vapp_resource, vm_slave_cfg)

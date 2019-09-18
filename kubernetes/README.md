@@ -57,3 +57,11 @@ bstaillants    Ready    <none>   127m   v1.14.0   135.39.46.134   <none>        
 bstaillants2   Ready    <none>   127m   v1.14.0   135.39.46.137   <none>        CentOS Linux 7 (Core)   3.10.0-693.5.2.el7.x86_64   docker://17.3.1
 ```
 
+### Expose a dashboard
+
+maybe disabling firewall
+```
+kubectl expose deployment kubernetes-dashboard --namespace=kube-system --type NodePort
+kubectl proxy
+```
+see https://stackoverflow.com/questions/53957413/how-to-access-kubernetes-dashboard-from-outside-network to create a user for dashboard.

@@ -1,4 +1,5 @@
 PYVCLOUD_IMAGE := pyvcloud:latest
+KUBERNETES_DIR=kubernetes
 
 
 .PHONY: help
@@ -18,5 +19,6 @@ destroy-vcloud-env: ## Destroy VMWare environment
 ls-vcloud-env: ## List a full VMWare environment
 	docker run --rm -it -v $(CURDIR)/vmware/sdk:/src -w /src -e VCLOUD_USERNAME=${VCLOUD_USERNAME} -e VCLOUD_PASSWORD=${VCLOUD_PASSWORD} -e VCLOUD_HOST=${VCLOUD_HOST} -e VCLOUD_ORG=${VCLOUD_ORG} -e VCLOUD_VDC_NAME="${VCLOUD_VDC_NAME}" $(PYVCLOUD_IMAGE) python tenant-ls.py  tenant.yaml
 
-ansible-deploy: ## Deploy Ansible
+deploy-ansible: ## Deploy Ansible
 	docker run --rm -it -v $(CURDIR):/src:rw -w /src -e VCLOUD_USERNAME=${VCLOUD_USERNAME} -e SSH_USERNAME=${SSH_USERNAME} -e VCLOUD_PASSWORD=${VCLOUD_PASSWORD} -e VCLOUD_HOST=${VCLOUD_HOST} -e VCLOUD_ORG=${VCLOUD_ORG} -e VCLOUD_VDC_NAME="${VCLOUD_VDC_NAME}" $(PYVCLOUD_IMAGE) python kubernetes/deploy-ansible.py  vmware/sdk/tenant.yaml
+	@(cd $(KUBERNETES_DIR) && $(MAKE) $@)
