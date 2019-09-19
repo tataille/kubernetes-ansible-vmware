@@ -44,7 +44,7 @@
 
 - name: show dashboard instructions
   debug: 
-    msg: "Dashboard is available at https://<MASTER_NODE_IP>:6443/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/node?namespace=default"
+    msg: "Dashboard is available at https://<MASTER_NODE_IP>:6443"
 
 - name: show dashboard token
   debug: 

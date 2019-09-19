@@ -138,7 +138,7 @@ hostconfig = configparser.ConfigParser(allow_no_value=True)
 hostconfig['all:vars'] = {'ansible_connection': 'ssh',
 'ansible_user': os.environ['SSH_USERNAME'],
 'ansible_ssh_private_key_file':'~/.ssh/id_ansible_rsa',
-'ansible_become_pass': '{{ my_cluser_sudo_pass }}'}
+'ansible_become_pass': os.environ['SSH_PASSWORD']}
   
 for vm_cfg in cfg.vapp['vms']:
     try:

@@ -15,27 +15,22 @@ System requirements:
 
 ### Security
 
-To store sudo password (used on master and slave), we use sudo passwed in a vault. Inventory file must be updated as follow
+The host.ini file is generated automatically. It contains the following:
 
 ```
 [all:vars]
-ansible_connection=ssh
-ansible_user=genesys
-ansible_become=yes  # use sudo 
-ansible_become_method=sudo 
-ansible_become_pass='{{ my_cluser_sudo_pass }}'
-```
-Then we need to create a password file `passwd.yml`using
-
-```
-$ ansible-vault create passwd.yml
+ansible_connection = ssh
+ansible_user = genesys
+ansible_ssh_private_key_file = ~/.ssh/id_ansible_rsa
+ansible_become_pass = # see SSH_PASSWORD env variable
+ansible_ssh_user = # see SSH_USERNAME env variable
 ```
 
-Then start the cookbook, password will be required to start the cookbook
+T
 
 ```
-$ ansible-playbook -i hosts.ini --ask-vault-pass --extra-vars '@passwd.yml' site.yaml 
-ansible-playbook -i host.ini --ask-vault-pass --extra-vars '@passwd.yml' site.yaml 
+$ ansible-playbook -i hosts.ini site.yaml 
+ansible-playbook -i host.ini site.yaml 
 ```
 
 ### Kubernetes nodes list

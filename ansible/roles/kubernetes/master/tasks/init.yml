@@ -83,7 +83,7 @@
   
 - name: show dashboard instructions
   debug: 
-    msg: "Dashboard is available at https://{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address | default(groups['master'][0]) }}:{{dashboard_port.stdout}}/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/node?namespace=default"
+    msg: "Dashboard is available at https://{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address | default(groups['master'][0]) }}:{{dashboard_port.stdout}}"
 
 - name: show dashboard token
   debug: 

@@ -1,4 +1,5 @@
 PYVCLOUD_IMAGE := pyvcloud:latest
+ANSIBLE_IMAGE := ansible
 KUBERNETES_DIR=ansible
 
 
@@ -9,6 +10,7 @@ help:
 
 build-env: ## Build the docker image with PYVCLOUD. Used to interact with VMWARE
 	docker build -t $(PYVCLOUD_IMAGE) . -f Dockerfile
+	docker build -t $(ANSIBLE_IMAGE) ansible
 
 create-vcloud-env: ## Create a full VMWare environment
 	docker run --rm -it -v $(CURDIR)/vmware/sdk:/src -v $(HOME)/.ssh:/root/.ssh -w /src  -e SSH_USERNAME=${SSH_USERNAME} -e SSH_PASSWORD=${SSH_PASSWORD} -e VCLOUD_USERNAME=${VCLOUD_USERNAME} -e VCLOUD_PASSWORD="${VCLOUD_PASSWORD}" -e VCLOUD_HOST=${VCLOUD_HOST} -e VCLOUD_ORG=${VCLOUD_ORG} -e VCLOUD_VDC_NAME="${VCLOUD_VDC_NAME}" $(PYVCLOUD_IMAGE)	 python tenant-onboard.py  tenant.yaml
