@@ -1,0 +1,90 @@
+---
+
+- name: Reset Kubernetes component
+  shell: "kubeadm reset --force"
+  register: reset_cluster
+
+- name: Init Kubernetes cluster
+  when: reset_cluster is succeeded
+  shell: |
+    kubeadm init --service-cidr {{ service_cidr }} \
+                 --kubernetes-version {{ kube_version }} \
+                 --pod-network-cidr {{ pod_network_cidr }} \
+                 --token {{ token }} \
+                 --apiserver-advertise-address {{ master_ip }} \
+                 {{ kubeadm_opts }} \
+                 {{ init_opts }}
+  register: init_cluster
+
+- name: Create Kubernetes config directory
+  file:
+    path: ".kube/"
+    state: directory
+
+- name: Copy admin.conf to Home directory
+  when: init_cluster is succeeded
+  copy:
+    src: "{{ kubeadmin_config }}"
+    dest: ".kube/config"
+    owner: "{{ ansible_user | default(ansible_user_id) }}"
+    group: "{{ ansible_user | default(ansible_user_id) }}"
+    mode: 0755
+    remote_src: true
+
+- name: Deploy kubernetes dashboard into cluster
+  when: init_cluster is succeeded and enable_dashboard
+  command: |
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+  register: create_result
+  until: create_result.rc == 0
+  retries: 5
+  become: yes
+  tags: dashboard
+  become_user: genesys
+  delay: 2
+  ignore_errors: true
+
+- name: "Change dashboard service type to NodePort to expose to public network"
+  shell: "kubectl patch service kubernetes-dashboard --namespace=kube-system  -p '{\"spec\": {\"type\": \"NodePort\"}}'"
+  become: yes
+  become_user: genesys
+
+- name: create service account for dashboard
+  shell: kubectl create serviceaccount genesysadmin
+  become: yes
+  become_user: genesys
+
+- name: create cluster-admin role binding for dashboard
+  shell: kubectl create clusterrolebinding genesysadmin-cadmin --clusterrole=cluster-admin --serviceaccount=default:genesysadmin
+  become: yes
+  become_user: genesys
+
+- name: create admin role binding for dashboard
+  shell: kubectl create clusterrolebinding genesysadmin-admin --clusterrole=admin --serviceaccount=default:genesysadmin
+  become: yes
+  become_user: genesys
+
+- name: get login token for dashboard
+  shell: kubectl -n default describe secret $(kubectl -n default get secret | awk '/^genesysadmin-token-/{print $1}') | awk '$1=="token:"{print $2}' 
+  register: dashboard_token
+  become: yes
+  become_user: genesys
+
+- name: get port for admin ui
+  shell: kubectl describe service kubernetes-dashboard -n kube-system  | awk '/NodePort:/ {print substr($3, 1, length($3)-4)}' 
+  register: dashboard_port
+  become: yes
+  become_user: genesys
+
+
+- name: save token to host
+  local_action: copy content="{{ dashboard_token.stdout_lines[0] }}" dest="{{playbook_dir}}/dashboard_token"  
+  become: no
+  
+- name: show dashboard instructions
+  debug: 
+    msg: "Dashboard is available at https://{{ hostvars[groups['master'][0]]['ansible_default_ipv4'].address | default(groups['master'][0]) }}:{{dashboard_port.stdout}}/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/node?namespace=default"
+
+- name: show dashboard token
+  debug: 
+    msg: "The dashboard login token is: {{ dashboard_token.stdout_lines[0] }}"

@@ -138,8 +138,6 @@ hostconfig = configparser.ConfigParser(allow_no_value=True)
 hostconfig['all:vars'] = {'ansible_connection': 'ssh',
 'ansible_user': os.environ['SSH_USERNAME'],
 'ansible_ssh_private_key_file':'~/.ssh/id_ansible_rsa',
-'ansible_become': 'yes',
-'ansible_become_method': 'sudo',
 'ansible_become_pass': '{{ my_cluser_sudo_pass }}'}
   
 for vm_cfg in cfg.vapp['vms']:
@@ -168,7 +166,7 @@ for vm_cfg in cfg.vapp['vms']:
     hostconfig.set("kube-cluster:children","node")
     hostconfig.set("all:vars",'ansible_ssh_user',os.environ['SSH_USERNAME'])
 
-with open('kubernetes/host_gen.ini', 'w') as configfile:
+with open('ansible/host.ini', 'w') as configfile:
     hostconfig.write(configfile)
 # Log out.
 print("All done!")

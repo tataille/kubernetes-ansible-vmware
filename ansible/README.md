@@ -12,15 +12,6 @@ Inspired by https://github.com/kairen/kubeadm-ansible
 System requirements:
 
 * Deployment environment must have Ansible 2.4.0+
-* Master and nodes must have passwordless SSH access
-
-### configure passwordless on master/slave nodes
-
-```
-$ ls -al ~/.ssh/id_*.pub
-$ ssh-keygen -t rsa -b 4096 -C "your_email@domain.com"
-$ ssh-copy-id remote_username@server_ip_address
-```
 
 ### Security
 
@@ -40,11 +31,11 @@ Then we need to create a password file `passwd.yml`using
 $ ansible-vault create passwd.yml
 ```
 
-Then start the cookbook
+Then start the cookbook, password will be required to start the cookbook
 
 ```
 $ ansible-playbook -i hosts.ini --ask-vault-pass --extra-vars '@passwd.yml' site.yaml 
-ansible-playbook -i ../host_gen.ini --ask-vault-pass --extra-vars '@passwd.yml' site.yaml 
+ansible-playbook -i host.ini --ask-vault-pass --extra-vars '@passwd.yml' site.yaml 
 ```
 
 ### Kubernetes nodes list
@@ -62,12 +53,13 @@ bstaillants2   Ready    <none>   127m   v1.14.0   135.39.46.137   <none>        
 maybe disabling firewall
  sudo systemctl status firewalld
 ```
+kubectl delete service kubernetes-dashboard --namespace=kubernetes-dashboard
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
-kubectl edit  deployment kubernetes-dashboard --namespace=kube-system
+kubectl patch service kubernetes-dashboard --namespace=kube-system  -p '{"spec": {"type": "NodePort"}}'
 kubectl get service --all-namespaces -o wide
 
 
-kubectl expose deployment kubernetes-dashboard --namespace=kube-system --type NodePort
+kubectl expose service kubernetes-dashboard --namespace=kube-system --type NodePort
 kubectl proxy
 ```
 see https://stackoverflow.com/questions/53957413/how-to-access-kubernetes-dashboard-from-outside-network to create a user for dashboard.
