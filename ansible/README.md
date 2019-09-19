@@ -15,46 +15,44 @@ System requirements:
 
 ### Security
 
-The host.ini file is generated automatically. It contains the following:
+The host.ini file is generated automatically before deploying Kubernetes. It contains the following:
 
 ```
 [all:vars]
 ansible_connection = ssh
-ansible_user = genesys
+ansible_user = # see SSH_USERNAME env variable
 ansible_ssh_private_key_file = ~/.ssh/id_ansible_rsa
 ansible_become_pass = # see SSH_PASSWORD env variable
 ansible_ssh_user = # see SSH_USERNAME env variable
-```
-
-T
-
-```
-$ ansible-playbook -i hosts.ini site.yaml 
-ansible-playbook -i host.ini site.yaml 
 ```
 
 ### Kubernetes nodes list
 
 ```
 $ kubectl get nodes -o wide
-NAME           STATUS   ROLES    AGE    VERSION   INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                KERNEL-VERSION              CONTAINER-RUNTIME
-bstaillantm    Ready    master   128m   v1.14.0   135.39.46.103   <none>        CentOS Linux 7 (Core)   3.10.0-693.5.2.el7.x86_64   docker://17.3.1
-bstaillants    Ready    <none>   127m   v1.14.0   135.39.46.134   <none>        CentOS Linux 7 (Core)   3.10.0-693.5.2.el7.x86_64   docker://17.3.1
-bstaillants2   Ready    <none>   127m   v1.14.0   135.39.46.137   <none>        CentOS Linux 7 (Core)   3.10.0-693.5.2.el7.x86_64   docker://17.3.1
+NAME                            STATUS   ROLES    AGE   VERSION   INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                KERNEL-VERSION               CONTAINER-RUNTIME
+bs<VCLOUD_USERNAME>masterhost   Ready    master   69s   v1.14.0   135.39.47.179   <none>        CentOS Linux 7 (Core)   3.10.0-957.27.2.el7.x86_64   docker://19.3.2
+bs<VCLOUD_USERNAME>slavehost    Ready    <none>   46s   v1.14.0   135.39.47.178   <none>        CentOS Linux 7 (Core)   3.10.0-957.27.2.el7.x86_64   docker://19.3.1
+bs<VCLOUD_USERNAME>slavehost2   Ready    <none>   46s   v1.14.0   135.39.47.177   <none>        CentOS Linux 7 (Core)   3.10.0-957.27.2.el7.x86_64   docker://19.3.1
 ```
 
-### Expose a dashboard
+### Kubernetes Dashboard
 
-maybe disabling firewall
- sudo systemctl status firewalld
+
+![Kubernetes Dashboard ](img/kubernetes_dashboard.png)
+
+Kubernetes Dashboard details can be retrieved from Ansible logs:
+
 ```
-kubectl delete service kubernetes-dashboard --namespace=kubernetes-dashboard
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
-kubectl patch service kubernetes-dashboard --namespace=kube-system  -p '{"spec": {"type": "NodePort"}}'
-kubectl get service --all-namespaces -o wide
+TASK [kubernetes/master : show dashboard instructions] *************************************************************************************************************************************************************************************************************
+ok: [135.39.47.179] => {
+    "msg": "Dashboard is available at https://135.39.47.179:32497"
+}
 
-
-kubectl expose service kubernetes-dashboard --namespace=kube-system --type NodePort
-kubectl proxy
+TASK [kubernetes/master : show dashboard token] ********************************************************************************************************************************************************************************************************************
+ok: [135.39.47.179] => {
+    "msg": "The dashboard login token is: eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImdlbmVzeXNhZG1pbi10b2tlbi02dGM3cCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJnZW5lc3lzYWRtaW4iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI4NGM4NDRhMS1kYWQxLTExZTktYjE4OS0wMDUwNTYwMTBmMDYiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6ZGVmYXVsdDpnZW5lc3lzYWRtaW4ifQ.29zMMmVnt-XPEkjxO-yFZbELUkvJzqWimWeOlH2DY_v0Sz2H1CkMniyeNyLmcCbJghn36opuyhXae1FWnP0SmUXXxxAL68nSfOJMA2tcj3x4R3ffkQ_Jhm3usim-ldPQTJZhFisutEuZzh2KOQlVwzG38mfiu5Uns_eZTnD50Q9acJmflBOGg2KihYt9ZOVrfzbU27jy1tCW_h-v9F8ZEszxIdONy3fgCdH1aAATaCFdh52K1bRVilbBV6RPPlSQnM-2DrcXiExIYzHZiSRByusMMJ-DQQzD9Z6ce3Z0AFkhB3CMLYWgdkDDetXh7BtUH6-b7PXLD7QW-mxVl9yiBw"
+}
 ```
-see https://stackoverflow.com/questions/53957413/how-to-access-kubernetes-dashboard-from-outside-network to create a user for dashboard.
+
+The token is stored in file `ansible/dashboard_token` and must be used to login in Admin page.

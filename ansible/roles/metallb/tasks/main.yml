@@ -10,7 +10,7 @@
   shell: "kubectl apply -f {{ metallb_yaml_url }}"
   tags: metallb
   become: yes
-  become_user: genesys
+  become_user: "{{ansible_ssh_user}}"
 
 - name: "Create configmap file"
   template:
@@ -22,7 +22,7 @@
   shell: "kubectl apply -f {{ tmp_dir }}/metallb-layer-2-config.yml"
   tags: metallb
   become: yes
-  become_user: genesys
+  become_user: "{{ansible_ssh_user}}"
 
 - name: "Clean-up"
   file:

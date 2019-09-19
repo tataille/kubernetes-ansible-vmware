@@ -14,10 +14,10 @@ Makefile targets:
 $ make help
 build-env                      Build the docker image with PYVCLOUD. Used to interact with VMWARE
 create-vcloud-env              Create a full VMWare environment
-deploy-kubernetes              Deploy Kubernetes
+deploy-K8s2                    Deploy Kubernetes
 destroy-vcloud-env             Destroy VMWare environment
 ls-vcloud-env                  List a full VMWare environment
-reset-kubernetes               Reset Kubernetes
+reset-K8s2                     Reset Kubernetes
 ```
 
 
@@ -29,6 +29,8 @@ export VCLOUD_USERNAME=xxxx
 export VCLOUD_PASSWORD=xxxx
 export VCLOUD_HOST=xxxx
 export VCLOUD_ORG=xxxx
+export SSH_USERNAME=xxx
+export SSH_PASSWORD=xxx
 ```
 
 * VCLOUD_USERNAME: Your username used to login to VCloud server

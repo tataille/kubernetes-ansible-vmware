@@ -40,41 +40,41 @@
   retries: 5
   become: yes
   tags: dashboard
-  become_user: genesys
+  become_user: "{{ansible_user}}"
   delay: 2
   ignore_errors: true
 
 - name: "Change dashboard service type to NodePort to expose to public network"
   shell: "kubectl patch service kubernetes-dashboard --namespace=kube-system  -p '{\"spec\": {\"type\": \"NodePort\"}}'"
   become: yes
-  become_user: genesys
+  become_user: "{{ansible_user}}"
 
 - name: create service account for dashboard
-  shell: kubectl create serviceaccount genesysadmin
+  shell: "kubectl create serviceaccount {{ansible_user}}admin"
   become: yes
-  become_user: genesys
+  become_user: "{{ansible_user}}"
 
 - name: create cluster-admin role binding for dashboard
-  shell: kubectl create clusterrolebinding genesysadmin-cadmin --clusterrole=cluster-admin --serviceaccount=default:genesysadmin
+  shell: "kubectl create clusterrolebinding {{ansible_user}}admin-cadmin --clusterrole=cluster-admin --serviceaccount=default:{{ansible_user}}admin"
   become: yes
-  become_user: genesys
+  become_user: "{{ansible_user}}"
 
 - name: create admin role binding for dashboard
-  shell: kubectl create clusterrolebinding genesysadmin-admin --clusterrole=admin --serviceaccount=default:genesysadmin
+  shell: "kubectl create clusterrolebinding {{ansible_user}}admin-admin --clusterrole=admin --serviceaccount=default:{{ansible_user}}admin"
   become: yes
-  become_user: genesys
+  become_user: "{{ansible_user}}"
 
 - name: get login token for dashboard
-  shell: kubectl -n default describe secret $(kubectl -n default get secret | awk '/^genesysadmin-token-/{print $1}') | awk '$1=="token:"{print $2}' 
+  shell: kubectl -n default describe secret $(kubectl -n default get secret | awk '/^{{ansible_user}}admin-token-/{print $1}') | awk '$1=="token:"{print $2}' 
   register: dashboard_token
   become: yes
-  become_user: genesys
+  become_user: "{{ansible_user}}"
 
 - name: get port for admin ui
   shell: kubectl describe service kubernetes-dashboard -n kube-system  | awk '/NodePort:/ {print substr($3, 1, length($3)-4)}' 
   register: dashboard_port
   become: yes
-  become_user: genesys
+  become_user: "{{ansible_user}}"
 
 
 - name: save token to host
