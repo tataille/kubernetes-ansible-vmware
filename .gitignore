@@ -4,3 +4,6 @@ vmware/sdk/pyvcloud.log
 *.log
 kubernetes/host_gen.ini
 ansible/dashboard_token
+host_gen.ini
+ansible/dashboard_token
+vmware/sdk/pyvcloud.log
